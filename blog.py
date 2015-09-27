@@ -134,7 +134,7 @@ class Post(db.Model):
 
 class BlogFront(BlogHandler):
     def get(self):
-        posts = greetings = Post.all().order('-created')
+        posts = Post.all().order('-created')
         self.render('front.html', posts = posts)
 
 class PostPage(BlogHandler):
