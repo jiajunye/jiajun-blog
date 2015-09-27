@@ -14,7 +14,7 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
-secret = 'fart'
+secret = 'akaye\1sag/839-8kjajq-i3'
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -66,10 +66,11 @@ def render_post(response, post):
 
 class MainPage(BlogHandler):
   def get(self):
-      self.write('Hello, Udacity!')
+      self.render('mainpage.html')
 
 
-##### user stuff
+##### user stuff #####
+# Hash users' password to store in datastore
 def make_salt(length = 5):
     return ''.join(random.choice(letters) for x in xrange(length))
 
@@ -86,6 +87,7 @@ def valid_pw(name, password, h):
 def users_key(group = 'default'):
     return db.Key.from_path('users', group)
 
+# User data model in datastore
 class User(db.Model):
     name = db.StringProperty(required = True)
     pw_hash = db.StringProperty(required = True)
@@ -115,7 +117,7 @@ class User(db.Model):
             return u
 
 
-##### blog stuff
+##### blog stuff #####
 
 def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
@@ -217,13 +219,10 @@ class Signup(BlogHandler):
     def done(self, *a, **kw):
         raise NotImplementedError
 
-class Unit2Signup(Signup):
-    def done(self):
-        self.redirect('/unit2/welcome?username=' + self.username)
-
+# Inherite from Singup Handler to handle the user already exist condition
 class Register(Signup):
     def done(self):
-        #make sure the user doesn't already exist
+        # Make sure the user doesn't already exist
         u = User.by_name(self.username)
         if u:
             msg = 'That user already exists.'
@@ -235,6 +234,8 @@ class Register(Signup):
             self.login(u)
             self.redirect('/blog')
 
+# Check validation of login information
+# If valid, set the cookie and redirect user to /blog page
 class Login(BlogHandler):
     def get(self):
         self.render('login-form.html')
@@ -251,35 +252,18 @@ class Login(BlogHandler):
             msg = 'Invalid login'
             self.render('login-form.html', error = msg)
 
+# Use /logout to log user out by setting the cookie to none
 class Logout(BlogHandler):
     def get(self):
         self.logout()
         self.redirect('/blog')
 
-class Unit3Welcome(BlogHandler):
-    def get(self):
-        if self.user:
-            self.render('welcome.html', username = self.user.name)
-        else:
-            self.redirect('/signup')
-
-class Welcome(BlogHandler):
-    def get(self):
-        username = self.request.get('username')
-        if valid_username(username):
-            self.render('welcome.html', username = username)
-        else:
-            self.redirect('/unit2/signup')
-
 app = webapp2.WSGIApplication([('/', MainPage),
-                               ('/unit2/signup', Unit2Signup),
-                               ('/unit2/welcome', Welcome),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
                                ('/blog/newpost', NewPost),
                                ('/signup', Register),
                                ('/login', Login),
                                ('/logout', Logout),
-                               ('/unit3/welcome', Unit3Welcome),
                                ],
                               debug=True)
